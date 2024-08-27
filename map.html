@@ -2,25 +2,33 @@
 <html>
   <head>
     <title>Display Map with Coordinates</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    
     <script>
-      // Initialize and add the map
+      var map;
+      var marker;
+    
       function initMap() {
-        // The coordinates you want to display
+        // Initialize the map with a default location
         const latlng = { lat: 40.714224, lng: -73.961452 };
-
-        // Create the map, centered at the coordinates
-        const map = new google.maps.Map(document.getElementById("map"), {
-          zoom: 12,  // Adjust zoom level as needed
+        map = new google.maps.Map(document.getElementById("map"), {
+          zoom: 19,
           center: latlng,
         });
-
-        // Add a marker at the coordinates
-        const marker = new google.maps.Marker({
+        marker = new google.maps.Marker({
           position: latlng,
           map: map,
         });
       }
+    
+      function updateLocation(lat, lng) {
+        const latlng = new google.maps.LatLng(lat, lng);
+        map.setCenter(latlng);
+        marker.setPosition(latlng);
+      }
     </script>
+    
     <style>
       /* Makes the page and map container fill the window */
       html, body {
@@ -38,9 +46,8 @@
     <div id="map"></div>
 
     <!-- Load the Google Maps API and initialize the map -->
-
-    <script async
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCzDHSmCVQ8fEyllsQMTKmacVAUFznXUDw&loading=async&callback=initMap">
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCzDHSmCVQ8fEyllsQMTKmacVAUFznXUDw&callback=initMap">
     </script>
   </body>
 </html>

@@ -10,9 +10,12 @@
 class GPSSensorData : public SensorData {
 public:
     GPSSensorData(double ts, const std::vector<double>& gpsValues) : SensorData(ts) {
+
         if (gpsValues.size() != 3) {
-            throw std::invalid_argument("GPS data must contain 2 values (latitude, longitude, height)");
+            throw std::invalid_argument("GPS data must contain 3 values (latitude, longitude, height)");
         }
+
+        this->gpsValues = gpsValues;
     }
 
     void setData(const std::any& data) override {

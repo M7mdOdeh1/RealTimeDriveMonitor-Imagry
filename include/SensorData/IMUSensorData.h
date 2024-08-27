@@ -13,6 +13,8 @@ public:
             throw std::invalid_argument("IMU data must contain 9 values (acceleration, angular velocity, orientation)");
         }
 
+        this->imuValues = imuValues;
+
     }
 
     void setData(const std::any& data) override {

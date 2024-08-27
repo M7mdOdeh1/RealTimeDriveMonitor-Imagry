@@ -12,15 +12,33 @@ MainWindow::MainWindow(QWidget *parent)
     // Set the window size
     this->setFixedSize(1920, 1080);
 
-    // Create the sensor data layout (left side)
+    // Create the left layout, which will contain the sensor data and the map
+    QVBoxLayout *leftLayout = new QVBoxLayout();
+
+    // Create the sensor data layout (top part of the left side)
     QWidget *sensorWidget = new QWidget(this);
     QVBoxLayout *sensorLayout = new QVBoxLayout(sensorWidget);
+
+    // Enhance the sensor layout by adding padding and adjusting font size
+    QString sensorStyle = "padding: 10px; font-size: 16px; color: white; background-color: #333333; border-radius: 10px;";
+    
     brakeLabel = new QLabel("Brake Data", this);
+    brakeLabel->setStyleSheet(sensorStyle);
+    
     gpsLabel = new QLabel("GPS Data", this);
+    gpsLabel->setStyleSheet(sensorStyle);
+    
     speedLabel = new QLabel("Speed Data", this);
+    speedLabel->setStyleSheet(sensorStyle);
+    
     throttleLabel = new QLabel("Throttle Data", this);
+    throttleLabel->setStyleSheet(sensorStyle);
+    
     steeringLabel = new QLabel("Steering Data", this);
+    steeringLabel->setStyleSheet(sensorStyle);
+    
     imuLabel = new QLabel("IMU Data", this);
+    imuLabel->setStyleSheet(sensorStyle);
 
     sensorLayout->addWidget(brakeLabel);
     sensorLayout->addWidget(gpsLabel);
@@ -28,14 +46,31 @@ MainWindow::MainWindow(QWidget *parent)
     sensorLayout->addWidget(throttleLabel);
     sensorLayout->addWidget(steeringLabel);
     sensorLayout->addWidget(imuLabel);
-    
-
 
     // Set a fixed width for the sensorWidget
-    sensorWidget->setFixedWidth(300);  // Adjust this value as needed
-    sensorWidget->setFixedHeight(540);  // Adjust this value as needed
-    sensorWidget->setStyleSheet("border: 1px solid red");
+    sensorWidget->setFixedWidth(600);  
+    sensorWidget->setFixedHeight(450);
+    sensorWidget->setStyleSheet("border: 1px solid lime");
 
+    // Add sensor data layout to the top part of the left side
+    leftLayout->addWidget(sensorWidget);
+
+    // Create the map view (bottom part of the left side)
+    mapView = new QWebEngineView(this);
+    mapView->setFixedSize(600, 450);  // Increased size of the map view
+    mapView->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, true);
+    mapView->settings()->setAttribute(QWebEngineSettings::JavascriptCanOpenWindows, true);
+    mapView->settings()->setAttribute(QWebEngineSettings::JavascriptCanAccessClipboard, true);
+    mapView->settings()->setAttribute(QWebEngineSettings::LocalStorageEnabled, true);
+    mapView->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls, true);
+
+    mapView->setUrl(QUrl::fromLocalFile("/home/m7mdodeh/Desktop/imagry_training/qt_projects/RealTimeDriveMonitor/RealTimeDriveMonitor/map.html"));
+
+    // margin for map view
+    mapView->setContentsMargins(0, 0, 0, 0);
+
+    // Add the map view to the bottom part of the left side
+    leftLayout->addWidget(mapView);
 
     // Create the camera layout (right side)
     QGridLayout *cameraLayout = new QGridLayout();
@@ -49,38 +84,25 @@ MainWindow::MainWindow(QWidget *parent)
     rightCameraLabel->setStyleSheet("border: 1px solid lime");
     backCameraLabel->setStyleSheet("border: 1px solid lime");
 
-    // Set fixed size for each frame label
-    frontCameraLabel->setFixedSize(695, 397);
-    leftCameraLabel->setFixedSize(695, 397);
-    rightCameraLabel->setFixedSize(695, 397);
-    backCameraLabel->setFixedSize(695, 397);
+    // Set reduced size for each frame label to allow more space for the map
+    frontCameraLabel->setFixedSize(550, 450);  
+    leftCameraLabel->setFixedSize(550, 450);   
+    rightCameraLabel->setFixedSize(550, 450);  
+    backCameraLabel->setFixedSize(550, 450);   
 
-    // Add widgets to the camera layout
+    // Add widgets to the camera layout in a 2x2 grid
     cameraLayout->addWidget(frontCameraLabel, 0, 1);
     cameraLayout->addWidget(leftCameraLabel, 0, 0);
     cameraLayout->addWidget(rightCameraLabel, 1, 0);
     cameraLayout->addWidget(backCameraLabel, 1, 1);
 
-    // Add both layouts to the main layout
-    mainLayout->addWidget(sensorWidget);  // Add the sensorWidget (containing sensorLayout)
-    mainLayout->addLayout(cameraLayout);
+    //set spacing 
+    cameraLayout->setSpacing(10);
 
-    // Create the map view to display Google Maps
-    // mapView = new QWebEngineView(this);
-    // mapView->setFixedSize(900, 600);  // Adjust the size of the map view
-    // mapView->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, true);
-    // mapView->settings()->setAttribute(QWebEngineSettings::JavascriptCanOpenWindows, true);
-    // mapView->settings()->setAttribute(QWebEngineSettings::JavascriptCanAccessClipboard, true);
+    cameraLayout->setContentsMargins(0, 0, 0, 0);  
 
-
-
-
-
-    // mapView->setUrl(QUrl::fromLocalFile("/home/m7mdodeh/Desktop/imagry_training/qt_projects/RealTimeDriveMonitor/RealTimeDriveMonitor/map.html"));
-    // //mainLayout->addWidget(mapView);  
-    
-    
-
+    mainLayout->addLayout(leftLayout);  
+    mainLayout->addLayout(cameraLayout);  
 
     // Set the central widget
     this->setCentralWidget(centralWidget);
@@ -149,15 +171,14 @@ void MainWindow::displayFrame(QLabel *label, const cv::Mat& frame) {
         // Convert cv::Mat to QImage
         QImage img((uchar*)frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
         QPixmap pixmap = QPixmap::fromImage(img.rgbSwapped());
-        label->setPixmap(pixmap.scaled(label->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        //dont keep aspect ratio
+        label->setPixmap(pixmap.scaled(label->size(), Qt::IgnoreAspectRatio, Qt::FastTransformation));
     }
 }
 
 void MainWindow::updateMapLocation(double latitude, double longitude) {
-    QString jsCode = QString("var latLng = new google.maps.LatLng(%1, %2); "
-                             "var map = new google.maps.Map(document.getElementById('map'), {zoom: 10, center: latLng}); "
-                             "var marker = new google.maps.Marker({position: latLng, map: map});")
-                             .arg(latitude)
-                             .arg(longitude);
+    QString jsCode = QString("updateLocation(%1, %2);")
+                            .arg(latitude)
+                            .arg(longitude);
     mapView->page()->runJavaScript(jsCode);
 }

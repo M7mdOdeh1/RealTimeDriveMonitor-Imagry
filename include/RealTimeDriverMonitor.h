@@ -13,6 +13,14 @@
 #include <QObject>
 #include <string>
 #include "include/Sensors/SensorType.h"
+#include "include/SensorData/SensorData.h"
+#include "include/SensorData/SpeedSensorData.h"
+#include "include/SensorData/SteeringSensorData.h"
+#include "include/SensorData/ThrottleSensorData.h"
+#include "include/SensorData/BrakeSensorData.h"
+#include "include/SensorData/GPSSensorData.h"
+#include "include/SensorData/IMUSensorData.h"
+#include "include/SensorData/CameraSensorData.h"
 
 
 class RealTimeDriverMonitor : public QObject{
