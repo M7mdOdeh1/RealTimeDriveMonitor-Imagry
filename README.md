@@ -75,8 +75,4 @@ To handle the large volume of data being processed in real-time, an efficient bu
 
 ## Class Diagram:
 
-![class diagram](image.png)
-
-
-## Demo Video
-[text](demo.webm)
+![alt text](image.png)
