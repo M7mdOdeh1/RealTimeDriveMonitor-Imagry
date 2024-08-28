@@ -55,6 +55,24 @@ This sensor monitors the position of the throttle (the pedal that controls accel
 ### 7. Brake Sensor
 The brake sensor detects when and how hard the brake pedal is pressed, providing real-time information on braking actions. Its data essential for safety systems like ABS (Anti-lock Braking System), collision avoidance systems, and for general vehicle control during deceleration.
 
-Class Diagram:
+## Synchronization Using Clock System
+The RealTimeDriveMonitor system employs a central clock mechanism to ensure all sensor data and camera feeds are synchronized accurately in real-time. This is critical to presenting a cohesive view of the vehicle's environment and status at any given moment.
+
+- **Clock-Based Data Coordination**: The system starts monitoring from the first available front camera frame, and all sensor data (GPS, IMU, Speed, etc.) is aligned with the clock time. This approach ensures that all displayed information across the UI (including sensor data and camera feeds) is in sync.
+- **Tick Interval**: The system processes data based on a fixed tick interval, ensuring that sensor readings and camera frames are updated at regular intervals, creating a smooth and consistent real-time experience.
+
+## Buffer Management
+To handle the large volume of data being processed in real-time, an efficient buffer management system has been implemented:
+
+- **Max Buffer Size**: Ensures that the buffer does not overflow by removing the oldest data when the buffer reaches its maximum size.
+- **Data Cleanup**: Automatically clears data that is no longer needed after processing to optimize memory usage.
+
+## Code Enhancements
+- **Factory Pattern**: A factory pattern has been applied for sensor data creation, simplifying the creation of sensor data objects and making the code more maintainable.
+- **Modularization**: The code has been refactored to improve modularity, making it easier to manage and extend the system with new features.
+- **Clock System**: The clock system is used for precise synchronization of sensor and camera data, ensuring all data is aligned based on the current timestamp.
+
+
+## Class Diagram:
 
 ![alt text](image.png)
