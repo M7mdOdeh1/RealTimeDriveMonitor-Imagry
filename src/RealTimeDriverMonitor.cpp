@@ -46,12 +46,12 @@ void RealTimeDriverMonitor::startMonitoring() {
     steeringSensor.start();
     imuSensor.start();
     
-    cameraSystem.start(1000.0/1);  // 30 FPS 
+    cameraSystem.start(1000.0/30);  // 30 FPS 
 
 
 
     // Start the clock system
-    clockSystem->start(1000.0/1, [this](double currentTime) { tick(currentTime); });  // 100ms tick interval
+    clockSystem->start(1000.0/5, [this](double currentTime) { tick(currentTime); });  // 100ms tick interval
 }
 
 void RealTimeDriverMonitor::stopMonitoring() {

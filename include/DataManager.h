@@ -27,7 +27,7 @@ public:
     void setCaptureStartCallback(std::function<void(double)> callback);
 
 private:
-    const size_t MAX_BUFFER_SIZE = 100;  // Maximum size for each sensor's buffer
+    const size_t MAX_BUFFER_SIZE = 1000;  // Maximum size for each sensor's buffer
 
     std::map<SensorType, std::deque<std::shared_ptr<SensorData>>> dataBuffers;
 

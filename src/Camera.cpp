@@ -3,8 +3,8 @@
 #include <chrono>
 #include <iostream>
 
-Camera::Camera(const std::string& imageDir, std::function<void(double, const cv::Mat&)> saveFrameCallback)
-    : imageLoader(imageDir), running(false), saveFrameCallback(saveFrameCallback)
+Camera::Camera(const std::string cameraName, const std::string& imageDir, std::function<void(double, const cv::Mat&)> saveFrameCallback)
+    : cameraName(cameraName), imageLoader(imageDir), running(false), saveFrameCallback(saveFrameCallback)
 {
     imageFiles = imageLoader.loadImages();
     
@@ -45,11 +45,14 @@ void Camera::captureLoop(double frameTime) {
             std::string timeStampStr = fileName.substr(0, fileName.find_last_of('.'));
             double time_stamp = std::stod(timeStampStr);
 
-            // put the current index into the image with orange color
-            cv::putText(image, std::to_string(currentIndex), cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 3);
+            // put the camera name into the image
+            cv::putText(image, cameraName, cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 3);
+
+            // put the current index into the bottom left of the image
+            cv::putText(image, "Frame Index: " + std::to_string(currentIndex), cv::Point(10, 70), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 3);
 
             // put the time_stamp into the image
-            cv::putText(image, std::to_string(time_stamp), cv::Point(10, 60), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 3);
+            cv::putText(image, "Timestamp: " + std::to_string(time_stamp), cv::Point(10, 105), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 3);
 
             saveFrameCallback(time_stamp, image);  // Save the frame to DataManager with time_stamp
         }

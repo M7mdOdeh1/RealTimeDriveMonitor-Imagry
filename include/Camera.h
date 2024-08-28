@@ -9,7 +9,7 @@
 
 class Camera {
 public:
-    Camera(const std::string& imageDir, std::function<void(double, const cv::Mat&)> saveFrameCallback);
+    Camera(const std::string cameraName, const std::string& imageDir, std::function<void(double, const cv::Mat&)> saveFrameCallback);
     ~Camera();
 
     void start(double frameTime);
@@ -18,6 +18,7 @@ public:
 private:
     void captureLoop(double frameTime);
 
+    std::string cameraName;
     ImageLoader imageLoader;
     std::vector<std::string> imageFiles;
     std::atomic<bool> running;

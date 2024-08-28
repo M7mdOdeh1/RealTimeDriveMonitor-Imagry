@@ -23,7 +23,7 @@ void DataManager::addData(SensorType type, double timeStamp, const std::any& dat
 
     std::lock_guard<std::mutex> lock(sensorMutexes[type]);
     if (dataBuffers[type].size() >= MAX_BUFFER_SIZE) {
-        std::cout << "Buffer for sensor type " << static_cast<int>(type) << " is full. Removing oldest data." << std::endl;
+        std::cout << "Buffer for sensor type " << SensorTypeHelper::toString(type) << " is full, removing the oldest data" << std::endl;
         dataBuffers[type].pop_front();  // Remove the oldest data
     }
     dataBuffers[type].emplace_back(sensorData);
