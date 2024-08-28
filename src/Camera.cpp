@@ -45,6 +45,12 @@ void Camera::captureLoop(double frameTime) {
             std::string timeStampStr = fileName.substr(0, fileName.find_last_of('.'));
             double time_stamp = std::stod(timeStampStr);
 
+            // put the current index into the image with orange color
+            cv::putText(image, std::to_string(currentIndex), cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 3);
+
+            // put the time_stamp into the image
+            cv::putText(image, std::to_string(time_stamp), cv::Point(10, 60), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 3);
+
             saveFrameCallback(time_stamp, image);  // Save the frame to DataManager with time_stamp
         }
 

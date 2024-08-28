@@ -1,4 +1,6 @@
 #include "../include/RealTimeDriverMonitor.h"
+#include <iostream>
+
 
 RealTimeDriverMonitor::RealTimeDriverMonitor(const std::string& dataDir)
     : monitoringStarted(false),
@@ -44,12 +46,12 @@ void RealTimeDriverMonitor::startMonitoring() {
     steeringSensor.start();
     imuSensor.start();
     
-    cameraSystem.start(1000.0 / 30.0);  // 30 FPS 
+    cameraSystem.start(1000.0/1);  // 30 FPS 
 
 
 
     // Start the clock system
-    clockSystem->start(1000.0/30, [this](double currentTime) { tick(currentTime); });  // 100ms tick interval
+    clockSystem->start(1000.0/1, [this](double currentTime) { tick(currentTime); });  // 100ms tick interval
 }
 
 void RealTimeDriverMonitor::stopMonitoring() {
@@ -69,138 +71,87 @@ void RealTimeDriverMonitor::stopMonitoring() {
 }
 
 void RealTimeDriverMonitor::tick(double currentTime) {
-    //std::cout << "Current Time: " << currentTime << std::endl;
-
     if (!monitoringStarted) return;
 
-
-    // auto frontFrame = dataManager->getClosestData(SensorType::FrontCamera, currentTime).second;
-    // auto leftFrame = dataManager->getClosestData(SensorType::LeftCamera, currentTime).second;
-    // auto rightFrame = dataManager->getClosestData(SensorType::RightCamera, currentTime).second;
-    // auto backFrame = dataManager->getClosestData(SensorType::BackCamera, currentTime).second;
-
-    // auto brakeData = dataManager->getClosestData(SensorType::BrakeSensor, currentTime).second;
-    // auto gpsData = dataManager->getClosestData(SensorType::GPSSensor, currentTime).second;
-    // auto speedData = dataManager->getClosestData(SensorType::SpeedSensor, currentTime).second;
-    // auto throttleData = dataManager->getClosestData(SensorType::ThrottleSensor, currentTime).second;
-    // auto steeringData = dataManager->getClosestData(SensorType::SteeringSensor, currentTime).second;
-    // auto imuData = dataManager->getClosestData(SensorType::IMUSensor, currentTime).second;
-
     try {
-        // Retrieve and cast data from CameraSensorData
-        auto closestData = dataManager->getClosestData(SensorType::FrontCamera, currentTime);
-        if (!closestData) {
-            std::cerr << "No closest data available for FrontCamera." << std::endl;
-            return;
-        }
-        auto cameraData = std::dynamic_pointer_cast<CameraSensorData>(closestData);
-        if (!cameraData) {
-            std::cerr << "Failed to cast to CameraSensorData." << std::endl;
-            return;
-        }
-        auto frontFrame = std::any_cast<cv::Mat>(cameraData->getData());
+        // Retrieve camera frames
+        auto frontFrameOpt = getSensorDataOrNull<cv::Mat>(SensorType::FrontCamera, currentTime);
+        auto leftFrameOpt = getSensorDataOrNull<cv::Mat>(SensorType::LeftCamera, currentTime);
+        auto rightFrameOpt = getSensorDataOrNull<cv::Mat>(SensorType::RightCamera, currentTime);
+        auto backFrameOpt = getSensorDataOrNull<cv::Mat>(SensorType::BackCamera, currentTime);
 
-        closestData = dataManager->getClosestData(SensorType::LeftCamera, currentTime);
-        if (!closestData) {
-            std::cerr << "No closest data available for LeftCamera." << std::endl;
-            return;
+        // Only emit framesUpdated signal if all frames are available
+        if (frontFrameOpt && leftFrameOpt && rightFrameOpt && backFrameOpt) {
+            emit framesUpdated(frontFrameOpt.value(), leftFrameOpt.value(), rightFrameOpt.value(), backFrameOpt.value());
         }
-        cameraData = std::dynamic_pointer_cast<CameraSensorData>(closestData);
-        if (!cameraData) {
-            std::cerr << "Failed to cast to CameraSensorData." << std::endl;
-            return;
+
+        // Retrieve sensor data and handle null cases
+        QString brakeText = "Brake Sensor: N/A";
+        QString gpsText = "GPS Data: N/A";
+        QString speedText = "Speed Sensor: N/A";
+        QString throttleText = "Throttle: N/A";
+        QString steeringText = "Steering: N/A";
+        QString imuText = "IMU Sensor: N/A";
+
+        auto brakeDataOpt = getSensorDataOrNull<double>(SensorType::BrakeSensor, currentTime);
+        if (brakeDataOpt) {
+            brakeText = QString("Brake Sensor: %1").arg(brakeDataOpt.value());
         }
-        auto leftFrame = std::any_cast<cv::Mat>(cameraData->getData());
 
-        closestData = dataManager->getClosestData(SensorType::RightCamera, currentTime);
-        if (!closestData) {
-            std::cerr << "No closest data available for RightCamera." << std::endl;
-            return;
+        auto gpsDataOpt = getSensorDataOrNull<std::vector<double>>(SensorType::GPSSensor, currentTime);
+        if (gpsDataOpt) {
+            const auto& gpsData = gpsDataOpt.value();
+            gpsText = QString("%1,%2,%3").arg(gpsData[0]).arg(gpsData[1]).arg(gpsData[2]);
         }
-        cameraData = std::dynamic_pointer_cast<CameraSensorData>(closestData);
-        if (!cameraData) {
-            std::cerr << "Failed to cast to CameraSensorData." << std::endl;
-            return;
+
+        auto speedDataOpt = getSensorDataOrNull<double>(SensorType::SpeedSensor, currentTime);
+        if (speedDataOpt) {
+            speedText = QString("Speed Sensor: %1").arg(speedDataOpt.value());
         }
-        auto rightFrame = std::any_cast<cv::Mat>(cameraData->getData());
 
-        closestData = dataManager->getClosestData(SensorType::BackCamera, currentTime);
-        if (!closestData) {
-            std::cerr << "No closest data available for BackCamera." << std::endl;
-            return;
+        auto throttleDataOpt = getSensorDataOrNull<double>(SensorType::ThrottleSensor, currentTime);
+        if (throttleDataOpt) {
+            throttleText = QString("Throttle: %1").arg(throttleDataOpt.value());
         }
-        cameraData = std::dynamic_pointer_cast<CameraSensorData>(closestData);
-        if (!cameraData) {
-            std::cerr << "Failed to cast to CameraSensorData." << std::endl;
-            return;
+
+        auto steeringDataOpt = getSensorDataOrNull<double>(SensorType::SteeringSensor, currentTime);
+        if (steeringDataOpt) {
+            steeringText = QString("Steering: %1").arg(steeringDataOpt.value());
         }
-        auto backFrame = std::any_cast<cv::Mat>(cameraData->getData());
 
-
-        
-
-        // Retrieve and cast sensor data
-        auto brakeSensorData = std::dynamic_pointer_cast<BrakeSensorData>(dataManager->getClosestData(SensorType::BrakeSensor, currentTime));
-        if (!brakeSensorData) {
-            std::cerr << "No closest data available for BrakeSensor." << std::endl;
-            return;
-        }
-        auto brakeData = std::any_cast<double>(brakeSensorData->getData());
-
-        auto gpsSensorData = std::dynamic_pointer_cast<GPSSensorData>(dataManager->getClosestData(SensorType::GPSSensor, currentTime));
-        if (!gpsSensorData) {
-            std::cerr << "No closest data available for GPSSensor." << std::endl;
-            return;
-        }
-        auto gpsData = std::any_cast<std::vector<double>>(gpsSensorData->getData());
-
-        auto speedSensorData = std::dynamic_pointer_cast<SpeedSensorData>(dataManager->getClosestData(SensorType::SpeedSensor, currentTime));
-        if (!speedSensorData) {
-            std::cerr << "No closest data available for SpeedSensor." << std::endl;
-            return;
-        }
-        auto speedData = std::any_cast<double>(speedSensorData->getData());
-
-        auto throttleSensorData = std::dynamic_pointer_cast<ThrottleSensorData>(dataManager->getClosestData(SensorType::ThrottleSensor, currentTime));
-        if (!throttleSensorData) {
-            std::cerr << "No closest data available for ThrottleSensor." << std::endl;
-            return;
-        }
-        auto throttleData = std::any_cast<double>(throttleSensorData->getData());
-
-        auto steeringSensorData = std::dynamic_pointer_cast<SteeringSensorData>(dataManager->getClosestData(SensorType::SteeringSensor, currentTime));
-        if (!steeringSensorData) {
-            std::cerr << "No closest data available for SteeringSensor." << std::endl;
-            return;
-        }
-        auto steeringData = std::any_cast<double>(steeringSensorData->getData());
-
-        auto imuSensorData = std::dynamic_pointer_cast<IMUSensorData>(dataManager->getClosestData(SensorType::IMUSensor, currentTime));
-        if (!imuSensorData) {
-            std::cerr << "No closest data available for IMUSensor." << std::endl;
-            return;
-        }
-        auto imuData = std::any_cast<std::vector<double>>(imuSensorData->getData());
-
-        // Emit signals to update the UI
-
-        emit framesUpdated(frontFrame, leftFrame, rightFrame, backFrame);
-
-        QString brakeText = QString("Brake Sensor: %1").arg(brakeData);
-        QString gpsText = QString("%1,%2,%3").arg(gpsData[0]).arg(gpsData[1]).arg(gpsData[2]);
-        QString speedText = QString("Speed Sensor: %1").arg(speedData);
-        QString throttleText = QString("Throttle: %1").arg(throttleData);
-        QString steeringText = QString("Steering: %1").arg(steeringData);
-        QString imuText = QString("Acc: (%1, %2, %3)\nGyro: (%4, %5, %6)\nMag: (%7, %8, %9)")
+        auto imuDataOpt = getSensorDataOrNull<std::vector<double>>(SensorType::IMUSensor, currentTime);
+        if (imuDataOpt) {
+            const auto& imuData = imuDataOpt.value();
+            imuText = QString("Acc: (%1, %2, %3)\nGyro: (%4, %5, %6)\nMag: (%7, %8, %9)")
                             .arg(imuData[0]).arg(imuData[1]).arg(imuData[2])
                             .arg(imuData[6]).arg(imuData[7]).arg(imuData[8])
                             .arg(imuData[3]).arg(imuData[4]).arg(imuData[5]);
+        }
 
+        // Emit signals to update the UI for sensors
         emit sensorDataUpdated(brakeText, gpsText, speedText, throttleText, steeringText, imuText);
 
+    } catch (const std::runtime_error& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
+}
+
+template<typename T>
+std::optional<T> RealTimeDriverMonitor::getSensorDataOrNull(SensorType type, double currentTime) {
+    auto closestData = dataManager->getClosestData(type, currentTime);
+    if (!closestData) {
+        std::cerr << "No closest data available for " << SensorTypeHelper::toString(type) << "." << std::endl;
+        return std::nullopt;
+    }
+    auto sensorData = std::dynamic_pointer_cast<SensorData>(closestData);
+    if (!sensorData) {
+        std::cerr << "Failed to cast to SensorData." << std::endl;
+        return std::nullopt;
+    }
+    try {
+        return std::any_cast<T>(sensorData->getData());
     } catch (const std::bad_any_cast& e) {
         std::cerr << "Failed to cast sensor data: " << e.what() << std::endl;
-        return;
+        return std::nullopt;
     }
-
 }

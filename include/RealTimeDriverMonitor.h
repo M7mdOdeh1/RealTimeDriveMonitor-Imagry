@@ -36,6 +36,7 @@ signals:
     void sensorDataUpdated(const QString& brakeData, const QString& gpsData, const QString& speedData, const QString& throttleData, const QString& steeringData, const QString& imuData);
 
 
+
 private:
     void tick(double currentTime);
 
@@ -51,4 +52,10 @@ private:
     CameraSystem cameraSystem;
 
     bool monitoringStarted;
+
+template<typename T>
+std::optional<T> getSensorDataOrNull(SensorType type, double currentTime);
+ 
+
+    
 };

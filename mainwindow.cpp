@@ -161,7 +161,7 @@ void MainWindow::updateSensorData(const QString& brakeData, const QString& gpsDa
         double latitude = gpsCoordinates[0].toDouble(&latOk);
         double longitude = gpsCoordinates[1].toDouble(&lonOk);
         if (latOk && lonOk) {
-            //updateMapLocation(latitude, longitude);
+            updateMapLocation(latitude, longitude);
         }
     }
 }
