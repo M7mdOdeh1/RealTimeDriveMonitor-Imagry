@@ -78,4 +78,5 @@ To handle the large volume of data being processed in real-time, an efficient bu
 ![alt text](image.png)
 
 ## Demo Video
-[demo video](demo.mp4)
+https://github.com/user-attachments/assets/84eb356a-4545-40ba-9114-7717d50cdd3a
+
