@@ -70,7 +70,7 @@ To handle the large volume of data being processed in real-time, an efficient bu
 ## Code Enhancements
 - **Factory Pattern**: A factory pattern has been applied for sensor data creation, simplifying the creation of sensor data objects and making the code more maintainable.
 - **Modularization**: The code has been refactored to improve modularity, making it easier to manage and extend the system with new features.
-- ****Clock System**: The clock system is used for precise synchronization of sensor and camera data, ensuring all data is aligned based on the current timestamp.
+- **Clock System**: The clock system is used for precise synchronization of sensor and camera data, ensuring all data is aligned based on the current timestamp.
 
 
 ## Class Diagram:
